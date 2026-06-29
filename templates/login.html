@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Acceso — SecureVision AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #070b14; --surface: #0e1628; --border: rgba(255,255,255,.07);
+      --accent: #2563eb; --danger: #dc2626; --text: #f1f5f9; --muted: #64748b;
+    }
+    body {
+      min-height: 100vh; background: var(--bg); font-family: 'Inter', sans-serif;
+      color: var(--text); display: flex; align-items: center; justify-content: center;
+      background-image: radial-gradient(ellipse at 20% 50%, rgba(37,99,235,.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(79,70,229,.06) 0%, transparent 60%);
+    }
+    .login-card {
+      width: 100%; max-width: 400px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 40px 36px; box-shadow: 0 24px 64px rgba(0,0,0,.5);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-mark svg { width: 20px; height: 20px; }
+    .brand-name { font-size: 16px; font-weight: 800; }
+    .brand-sub  { font-size: 11px; color: var(--muted); }
+
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .07em; color: var(--muted); margin-bottom: 7px; }
+    input[type=text], input[type=password] {
+      width: 100%; padding: 11px 14px; border-radius: 8px;
+      background: rgba(0,0,0,.3); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif;
+      transition: border-color .2s; outline: none;
+    }
+    input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+
+    .error-msg {
+      background: rgba(220,38,38,.1); border: 1px solid rgba(220,38,38,.25);
+      color: #fca5a5; border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .error-msg svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .btn-login {
+      width: 100%; padding: 12px; border-radius: 9px; font-size: 14px; font-weight: 700;
+      cursor: pointer; border: none; background: var(--accent); color: #fff;
+      transition: all .2s; letter-spacing: .02em; margin-top: 4px;
+    }
+    .btn-login:hover { background: #1d4ed8; box-shadow: 0 4px 20px rgba(37,99,235,.35); }
+
+    .footer-note {
+      text-align: center; font-size: 11px; color: var(--muted); margin-top: 24px;
+      padding-top: 20px; border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+<div class="login-card">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">SecureVision AI</div>
+      <div class="brand-sub">Panel de Control — SI904-M2</div>
+    </div>
+  </div>
+
+  <h1>Acceso al sistema</h1>
+  <p class="subtitle">Introduce tus credenciales para acceder al panel de monitoreo de seguridad ciudadana.</p>
+
+  {% if error %}
+  <div class="error-msg">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="POST" action="/login">
+    <div class="field">
+      <label for="usuario">Usuario</label>
+      <input type="text" id="usuario" name="usuario" placeholder="Nombre de usuario" autocomplete="username" required/>
+    </div>
+    <div class="field">
+      <label for="clave">Contraseña</label>
+      <input type="password" id="clave" name="clave" placeholder="••••••••••" autocomplete="current-password" required/>
+    </div>
+    <button type="submit" class="btn-login">Iniciar sesión</button>
+  </form>
+
+  <div class="footer-note">
+    Universidad Nacional de Ingeniería · Seguridad de Sistemas · © 2026
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Entorno virtual
+venv/
+.venv/
+
+# Credenciales
+.env
+
+# Capturas generadas en tiempo de ejecución
+capturas/*.jpg
+capturas/*.png
+
+# Pesos del modelo (se descargan solos)
+modelos/*.pt
+*.pt
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Logs y temporales
+*.log
+
+# Datos de prueba locales (imágenes grandes)
+data/

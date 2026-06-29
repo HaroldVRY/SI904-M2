@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: securevision-ai
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn dashboard:app --workers 1 --threads 8 --timeout 0 --bind 0.0.0.0:$PORT
+    envVars:
+      # Roboflow
+      - key: ROBOFLOW_API_KEY
+        sync: false
+      # Twilio WhatsApp
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        sync: false
+      - key: TWILIO_WHATSAPP_TO
+        sync: false
+      # Dashboard
+      - key: DASHBOARD_USER
+        sync: false
+      - key: DASHBOARD_PASS
+        sync: false
+      - key: DASHBOARD_SECRET_KEY
+        sync: false
+      # Parámetros del sistema
+      - key: CONF_THRESHOLD
+        value: "0.40"
+      - key: COOLDOWN_SEGUNDOS
+        value: "30"
+      - key: INTERVALO_INFERENCIA
+        value: "1.0"
+      - key: MODELOS_ACTIVOS
+        value: "armas,rostros"

@@ -1,0 +1,17 @@
+# ============================================================
+# Dependencias - Sistema de Seguridad Ciudadana (SI904-M2)
+# Probado con Python 3.10 - 3.12
+#
+# NOTA: usar opencv-python (con interfaz gráfica), NO la variante
+# headless, porque el sistema muestra la cámara con cv2.imshow().
+# ultralytics instala automáticamente torch/torchvision compatibles.
+# ============================================================
+ 
+ultralytics==8.4.75
+opencv-python==4.13.0.92
+numpy==2.4.4
+requests==2.33.1
+python-dotenv==1.0.1
+ 
+# Para pruebas
+pytest==8.3.4
