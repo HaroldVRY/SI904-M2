@@ -1,17 +1,31 @@
 # ============================================================
 # Dependencias - Sistema de Seguridad Ciudadana (SI904-M2)
-# Probado con Python 3.10 - 3.12
-#
-# NOTA: usar opencv-python (con interfaz gráfica), NO la variante
-# headless, porque el sistema muestra la cámara con cv2.imshow().
-# ultralytics instala automáticamente torch/torchvision compatibles.
+# Python 3.11 o 3.12  (inference-sdk NO soporta 3.13+)
 # ============================================================
- 
-ultralytics==8.4.75
-opencv-python==4.13.0.92
-numpy==2.4.4
-requests==2.33.1
-python-dotenv==1.0.1
- 
-# Para pruebas
+
+# Web framework
+flask==3.1.0
+
+# Inferencia hospedada en Roboflow (sin pesos locales)
+inference-sdk>=1.3.2,<2.0.0
+
+# Procesamiento de imagen
+# HEADLESS: sin dependencia de libGL/display (requerido en servidor Linux)
+opencv-python-headless==4.10.0.84
+
+# Alertas WhatsApp
+twilio==9.10.9
+
+# Base de datos
+supabase>=2.3.0
+
+# Utilidades
+python-dotenv==1.2.2
+requests>=2.33.0
+numpy>=1.24.0
+
+# Servidor WSGI para producción
+gunicorn==21.2.0
+
+# Pruebas
 pytest==8.3.4
