@@ -5,11 +5,13 @@ Envía un mensaje de WhatsApp cuando se detectan amenazas,
 respetando un cooldown configurable para no saturar el canal.
 Guarda además la captura anotada en capturas/.
 
-Prompt 12 — flag --enviar-foto:
-    Si se activa, intenta enviar la imagen anotada por WhatsApp usando
-    Twilio MediaUrl. Requiere que la imagen sea accesible desde una URL
-    pública (p.ej. ngrok). Sin URL pública, el enviar_foto se ignora
-    y solo se envía el texto (comportamiento por defecto).
+Envío de foto (enviar_foto, default True):
+    Intenta enviar la imagen anotada por WhatsApp usando Twilio MediaUrl.
+    Requiere una URL pública que sirva capturas/, resuelta por prioridad:
+        1. URL_PUBLICA_CAPTURAS en .env (uso local con ngrok).
+        2. RENDER_EXTERNAL_URL + "/capturas" (automático en Render,
+           servido por la ruta /capturas de dashboard.py).
+    Sin ninguna URL pública disponible, se envía solo el texto.
 """
 
 
@@ -42,20 +44,20 @@ class GestorAlertas:
     - Si Twilio no está configurado, solo registra en log (no falla).
     """
 
-    def __init__(self, enviar_foto: bool = False) -> None:
+    def __init__(self, enviar_foto: bool = True) -> None:
         """
         Parameters
         ----------
         enviar_foto : bool
-            Si True, intenta enviar la captura anotada por WhatsApp
-            usando Twilio MediaUrl (requiere URL pública en .env).
+            Si True (default), intenta enviar la captura anotada por WhatsApp
+            usando Twilio MediaUrl. Solo se envía si se logra resolver una
+            URL pública (ver _resolver_url_publica).
         """
         self.cooldown    = config.COOLDOWN_SEGUNDOS
         self.enviar_foto = enviar_foto
         self._ultimo_ts  = 0.0          # timestamp de la última alerta enviada
         self._carpeta    = asegurar_carpeta("capturas")
-        # URL base pública para servir capturas (ej. ngrok)
-        self._url_publica: str = os.getenv("URL_PUBLICA_CAPTURAS", "").rstrip("/")
+        self._url_publica: str = self._resolver_url_publica()
 
         # Intentar importar Twilio solo si las credenciales están disponibles
         self._twilio_ok = bool(
@@ -84,6 +86,28 @@ class GestorAlertas:
     # ------------------------------------------------------------------
     # API pública
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _resolver_url_publica() -> str:
+        """
+        Determina la URL base pública que sirve la carpeta capturas/.
+
+        Prioridad:
+            1. URL_PUBLICA_CAPTURAS en .env (uso local con ngrok).
+            2. RENDER_EXTERNAL_URL (Render la define automáticamente en
+               despliegue) + "/capturas" — servido por dashboard.py.
+
+        Devuelve "" si ninguna está disponible (no se enviarán fotos).
+        """
+        url_manual = os.getenv("URL_PUBLICA_CAPTURAS", "").rstrip("/")
+        if url_manual:
+            return url_manual
+
+        url_render = os.getenv("RENDER_EXTERNAL_URL", "").rstrip("/")
+        if url_render:
+            return f"{url_render}/capturas"
+
+        return ""
 
     def disparar(
         self,
@@ -190,10 +214,10 @@ class GestorAlertas:
         """
         Envía la captura anotada junto con el texto por WhatsApp.
 
-        Requiere que URL_PUBLICA_CAPTURAS esté definida en .env y que
-        el servidor esté sirviendo la carpeta capturas/.
+        En Render, self._url_publica ya apunta a RENDER_EXTERNAL_URL + "/capturas"
+        (servida por dashboard.py) sin configuración adicional.
 
-        Ejemplo con ngrok:
+        Para uso local con ngrok:
             ngrok http 8000
             # En otra terminal:
             python -m http.server 8000   # desde la carpeta raiz del proyecto

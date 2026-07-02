@@ -22,7 +22,7 @@ import cv2
 import numpy as np
 from dotenv import load_dotenv
 from flask import (Flask, Response, jsonify, redirect, render_template,
-                   request, session, url_for)
+                   request, send_from_directory, session, url_for)
 
 load_dotenv()
 
@@ -88,7 +88,9 @@ def _get_detector():
 def _get_alertas():
     global _alertas
     if _alertas is None:
-        _alertas = GestorAlertas()
+        # enviar_foto=True: en Render, GestorAlertas resuelve la URL pública
+        # via RENDER_EXTERNAL_URL y usa la ruta /capturas de este mismo servidor
+        _alertas = GestorAlertas(enviar_foto=True)
     return _alertas
 
 
@@ -217,6 +219,20 @@ def api_stats():
 @requires_auth
 def api_alerts():
     return jsonify(_alertas_historial)
+
+
+# Carpeta donde GestorAlertas guarda las capturas anotadas (src/alertas.py)
+_CAPTURAS_DIR = os.path.abspath("capturas")
+
+
+@app.route("/capturas/<path:nombre_archivo>")
+def servir_captura(nombre_archivo):
+    """
+    Sirve las capturas anotadas para que Twilio pueda descargarlas vía
+    MediaUrl al enviar la foto por WhatsApp. Sin @requires_auth porque
+    los servidores de Twilio no tienen la cookie de sesión del dashboard.
+    """
+    return send_from_directory(_CAPTURAS_DIR, nombre_archivo)
 
 
 # ══════════════════════════════════════════════════════════════════
