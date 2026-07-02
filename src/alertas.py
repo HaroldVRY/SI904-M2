@@ -139,7 +139,7 @@ class GestorAlertas:
         # Captura y WhatsApp: solo si hay arma y alarma activa
         if enviar_whatsapp and self._twilio_ok:
             ruta_captura = self._guardar_captura(frame, detecciones)
-            mensaje = self._armar_mensaje(detecciones, ruta_captura)
+            mensaje = self._armar_mensaje(detecciones)
             logger.info("Enviando WhatsApp:\n%s", mensaje)
             if self.enviar_foto and self._url_publica:
                 self._enviar_whatsapp_con_foto(mensaje, ruta_captura)
@@ -169,7 +169,6 @@ class GestorAlertas:
     def _armar_mensaje(
         self,
         detecciones: list[dict[str, Any]],
-        ruta_captura: str,
     ) -> str:
         """Construye el texto del mensaje de WhatsApp."""
         from datetime import datetime
@@ -195,7 +194,6 @@ class GestorAlertas:
             for item in items:
                 lineas.append(f"   • {item}")
 
-        lineas += ["", f"📸 Captura guardada: {os.path.basename(ruta_captura)}"]
         return "\n".join(lineas)
 
     def _enviar_whatsapp(self, mensaje: str) -> None:

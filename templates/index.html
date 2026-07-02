@@ -555,6 +555,11 @@ input[type=range] {
           </div>
 
           <div class="ctrl-card">
+            <span class="ctrl-lbl">Cámara</span>
+            <select id="cameraSelect" style="width:100%; margin-bottom:12px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:12px;">
+              <option value="">Cámara por defecto</option>
+            </select>
+
             <span class="ctrl-lbl">Modelos Activos</span>
             <div class="model-toggles" style="margin-bottom: 12px;">
               <button class="model-btn active" data-model="armas" id="mArmasBtn" onclick="toggleModelSel('Armas')">Armas</button>
@@ -705,6 +710,61 @@ let fAnt = 0, tAnt = Date.now();
 let firstEvent = true;
 let isMuted = false;
 
+// ── Selección de cámara ──
+// Los laptops suelen exponer más de una cámara (ej. infrarroja de Windows
+// Hello junto a la webcam real); dejar elegir evita que el navegador tome
+// por defecto un dispositivo que falla al iniciar ("Timeout starting video source").
+async function poblarCamaras() {
+  try {
+    const dispositivos = await navigator.mediaDevices.enumerateDevices();
+    const camaras = dispositivos.filter(d => d.kind === 'videoinput');
+    const select = document.getElementById('cameraSelect');
+    const valorPrevio = select.value;
+    select.innerHTML = '<option value="">Cámara por defecto</option>';
+    camaras.forEach((cam, i) => {
+      const opt = document.createElement('option');
+      opt.value = cam.deviceId;
+      opt.textContent = cam.label || `Cámara ${i + 1}`;
+      select.appendChild(opt);
+    });
+    if (valorPrevio && camaras.some(c => c.deviceId === valorPrevio)) {
+      select.value = valorPrevio;
+    }
+  } catch (e) {
+    console.warn('No se pudo enumerar cámaras:', e);
+  }
+}
+poblarCamaras();
+navigator.mediaDevices.addEventListener?.('devicechange', poblarCamaras);
+
+// Traduce los errores crípticos de getUserMedia a algo accionable para el operador.
+function mensajeErrorCamara(err) {
+  switch (err.name) {
+    case 'NotReadableError':
+    case 'AbortError':
+      return `No se pudo iniciar la cámara (${err.message}). Suele deberse a que otra `
+           + `aplicación o pestaña la está usando, o a que el servicio de cámara de `
+           + `Windows quedó colgado. Cierra Zoom/Teams/Cámara de Windows/otras pestañas `
+           + `con acceso a la cámara, reinicia el navegador por completo y, si persiste, `
+           + `reinicia el equipo. También puedes probar otra cámara en el selector.`;
+    case 'NotAllowedError':
+    case 'PermissionDeniedError':
+      return `Permiso de cámara denegado. Revisa el ícono de cámara en la barra de `
+           + `direcciones del navegador y en Configuración de Windows → Privacidad y `
+           + `seguridad → Cámara, que el acceso esté permitido para este navegador.`;
+    case 'NotFoundError':
+    case 'DevicesNotFoundError':
+      return `No se detectó ninguna cámara conectada. Verifica que esté conectada y `
+           + `reconocida por Windows (Administrador de dispositivos).`;
+    case 'OverconstrainedError':
+    case 'ConstraintNotSatisfiedError':
+      return `La cámara seleccionada no soporta la resolución solicitada. Prueba con `
+           + `"Cámara por defecto" en el selector.`;
+    default:
+      return err.message;
+  }
+}
+
 async function aplicarCambios() {
   const btn       = document.getElementById('btnAplicar');
   const conf      = parseFloat(document.getElementById('confThreshold').value) / 100;
@@ -800,14 +860,28 @@ async function toggleMonitoreo() {
 
     try {
       // 1. Obtener cámara del navegador
-      streamLocal = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 } }
-      });
-      
+      const deviceId = document.getElementById('cameraSelect').value;
+      const constraintsPreferidas = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: { ideal: 640 }, height: { ideal: 480 } }
+          : { width: { ideal: 640 }, height: { ideal: 480 } }
+      };
+      try {
+        streamLocal = await navigator.mediaDevices.getUserMedia(constraintsPreferidas);
+      } catch (errCamara) {
+        // Reintento con restricciones mínimas: si el dispositivo elegido o la
+        // resolución pedida son la causa (frecuente con cámaras infrarrojas o
+        // errores intermitentes "Timeout starting video source"), a veces
+        // pedir solo `video: true` sí logra iniciar el dispositivo.
+        console.warn('Fallo con restricciones preferidas, reintentando con video:true —', errCamara);
+        streamLocal = await navigator.mediaDevices.getUserMedia({ video: true });
+      }
+
       const video = document.getElementById('localVideo');
       video.srcObject = streamLocal;
-      
+
       document.getElementById('videoPlaceholder').style.display = 'none';
+      poblarCamaras(); // ahora que hay permiso, refrescar con las etiquetas reales
 
       // 2. Iniciar sesión de monitoreo en el backend
       const res = await fetch('/api/control', {
@@ -834,7 +908,7 @@ async function toggleMonitoreo() {
 
     } catch (err) {
       console.error(err);
-      alert("Error: " + err.message);
+      alert("Error: " + mensajeErrorCamara(err));
       detenerMonitoreoLocal();
       btn.textContent = "Iniciar Monitoreo";
       btn.disabled = false;

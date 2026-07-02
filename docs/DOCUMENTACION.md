@@ -347,8 +347,9 @@ Se ejecuta inferencia  ──► Sin detecciones ──► Solo dibuja frame, co
    • knife (65.0%)
 👤 ROSTROS detectado(s):
    • Face (87.0%)
-📸 Captura guardada: alerta_20260628_143522.jpg
 ```
+La captura anotada se envía adjunta como imagen del mensaje (Twilio MediaUrl),
+por lo que el texto ya no repite el nombre del archivo.
 
 ---
 
